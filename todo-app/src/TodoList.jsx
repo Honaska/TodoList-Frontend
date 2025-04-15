@@ -31,7 +31,8 @@ export default function TodoList() {
 
     const handleEditClick = () => {
         setIsEditing(true);
-        setNewTask(tasks[selectedTaskIndex]); // Populate form with task details
+        setNewTask(tasks[selectedTaskIndex]);
+        setShowForm(true);// Populate form with task details
     };
 
     const handleUpdateTask = () => {
