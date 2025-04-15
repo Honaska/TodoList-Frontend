@@ -31,8 +31,8 @@ export default function TodoList() {
 
     const handleEditClick = () => {
         setIsEditing(true);
-        setNewTask(tasks[selectedTaskIndex]);
-        setShowForm(true);// Populate form with task details
+        setNewTask(tasks[selectedTaskIndex]); // Populate form with task details
+        setShowForm(true); // Show the form
     };
 
     const handleUpdateTask = () => {
@@ -44,6 +44,7 @@ export default function TodoList() {
         setIsEditing(false);
         setSelectedTaskIndex(null);
         setNewTask({ title: "", details: "" });
+        setShowForm(false);
     };
 
     return (
@@ -57,7 +58,7 @@ export default function TodoList() {
 
                 {showForm && (
                     <div className="task-form">
-                        <h2>Add New Task</h2>
+                        <h2>{isEditing ? "Edit Task" : "Add New Task"}</h2>
                         <div className="form-group">
                             <label htmlFor="title">Task name:*</label>
                             <input
@@ -81,12 +82,15 @@ export default function TodoList() {
                                 required
                             />
                         </div>
-                        {/* You can add more fields here if needed, like Priority, Due Date, etc. */}
                         <div className="form-actions">
-                            <button onClick={addTask}>
+                            <button onClick={isEditing ? handleUpdateTask : addTask}>
                                 {isEditing ? "Update Task" : "Add Task"}
                             </button>
-                            <button type="button" onClick={() => { setShowForm(false); setIsEditing(false); setNewTask({ title: "", details: "" }); }}>
+                            <button type="button" onClick={() => { 
+                                setShowForm(false); 
+                                setIsEditing(false); 
+                                setNewTask({ title: "", details: "" }); 
+                            }}>
                                 Cancel
                             </button>
                         </div>
@@ -99,7 +103,11 @@ export default function TodoList() {
                 ) : (
                     <ul>
                         {tasks.map((task, index) => (
-                            <li key={index} onClick={() => handleTaskClick(index)} className={selectedTaskIndex === index ? 'selected' : ''}>
+                            <li
+                                key={index}
+                                onClick={() => handleTaskClick(index)}
+                                className={selectedTaskIndex === index ? 'selected' : ''}
+                            >
                                 {task.title}
                             </li>
                         ))}
@@ -114,39 +122,6 @@ export default function TodoList() {
                         <div className="task-actions">
                             <button onClick={() => removeTask(selectedTaskIndex)}>Delete</button>
                             <button onClick={handleEditClick}>Edit</button>
-                        </div>
-                    </div>
-                )}
-
-                {isEditing && selectedTaskIndex !== null && showForm && (
-                    <div className="task-form">
-                        <h2>Edit Task</h2>
-                        <div className="form-group">
-                            <label htmlFor="edit-title">Task name:*</label>
-                            <input
-                                type="text"
-                                id="edit-title"
-                                name="title"
-                                value={newTask.title}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="edit-details">Task details:*</label>
-                            <textarea
-                                id="edit-details"
-                                name="details"
-                                value={newTask.details}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-actions">
-                            <button onClick={handleUpdateTask}>Update Task</button>
-                            <button type="button" onClick={() => { setIsEditing(false); setSelectedTaskIndex(null); setNewTask({ title: "", details: "" }); setShowForm(false); }}>
-                                Cancel Edit
-                            </button>
                         </div>
                     </div>
                 )}
