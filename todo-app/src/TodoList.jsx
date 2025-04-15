@@ -1,5 +1,9 @@
-import React, { useState } from "react";
-import "./index.css"; // Assuming you have some basic CSS
+import React, { useState, useEffect } from "react";
+import axios from "axios"; // ✅ added for API calls
+import "./index.css";
+
+// ✅ Set your FastAPI backend base URL here
+const API_BASE_URL = "https://your-fastapi-render-url.onrender.com";
 
 export default function TodoList() {
     const [tasks, setTasks] = useState([]);
@@ -8,17 +12,14 @@ export default function TodoList() {
     const [selectedTaskIndex, setSelectedTaskIndex] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
 
-    const removeTask = (index) => {
-        setTasks(tasks.filter((_, i) => i !== index));
-        setSelectedTaskIndex(null);
-    };
-
-    const addTask = () => {
-        if (newTask.title.trim() === "") return;
-        setTasks([...tasks, newTask]);
-        setNewTask({ title: "", details: "" });
-        setShowForm(false);
-    };
+    // ✅ Fetch tasks from FastAPI on component mount
+    useEffect(() => {
+        axios.get(`${API_BASE_URL}/tasks`)
+            .then(response => {
+                setTasks(response.data);
+            })
+            .catch(error => console.error("Error fetching tasks:", error));
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -29,22 +30,55 @@ export default function TodoList() {
         setSelectedTaskIndex(index);
     };
 
+    const addTask = () => {
+        if (newTask.title.trim() === "") return;
+
+        // ✅ Send task to backend
+        axios.post(`${API_BASE_URL}/tasks`, newTask)
+            .then(response => {
+                setTasks([...tasks, response.data]);
+                setNewTask({ title: "", details: "" });
+                setShowForm(false);
+            })
+            .catch(error => console.error("Error adding task:", error));
+    };
+
     const handleEditClick = () => {
         setIsEditing(true);
-        setNewTask(tasks[selectedTaskIndex]); // Populate form with task details
-        setShowForm(true); // Show the form
+        setNewTask(tasks[selectedTaskIndex]);
+        setShowForm(true); // ✅ Show the form when editing
     };
 
     const handleUpdateTask = () => {
         if (newTask.title.trim() === "") return;
-        const updatedTasks = tasks.map((task, index) =>
-            index === selectedTaskIndex ? { ...newTask } : task
-        );
-        setTasks(updatedTasks);
-        setIsEditing(false);
-        setSelectedTaskIndex(null);
-        setNewTask({ title: "", details: "" });
-        setShowForm(false);
+
+        const taskId = tasks[selectedTaskIndex].id; // ✅ assume each task has an `id` from backend
+
+        // ✅ Send updated task to backend
+        axios.put(`${API_BASE_URL}/tasks/${taskId}`, newTask)
+            .then(response => {
+                const updatedTasks = tasks.map((task, index) =>
+                    index === selectedTaskIndex ? response.data : task
+                );
+                setTasks(updatedTasks);
+                setIsEditing(false);
+                setSelectedTaskIndex(null);
+                setNewTask({ title: "", details: "" });
+                setShowForm(false);
+            })
+            .catch(error => console.error("Error updating task:", error));
+    };
+
+    const removeTask = (index) => {
+        const taskId = tasks[index].id; // ✅ use task `id` to delete from backend
+
+        // ✅ Delete from backend
+        axios.delete(`${API_BASE_URL}/tasks/${taskId}`)
+            .then(() => {
+                setTasks(tasks.filter((_, i) => i !== index));
+                setSelectedTaskIndex(null);
+            })
+            .catch(error => console.error("Error deleting task:", error));
     };
 
     return (
@@ -86,10 +120,10 @@ export default function TodoList() {
                             <button onClick={isEditing ? handleUpdateTask : addTask}>
                                 {isEditing ? "Update Task" : "Add Task"}
                             </button>
-                            <button type="button" onClick={() => { 
-                                setShowForm(false); 
-                                setIsEditing(false); 
-                                setNewTask({ title: "", details: "" }); 
+                            <button type="button" onClick={() => {
+                                setShowForm(false);
+                                setIsEditing(false);
+                                setNewTask({ title: "", details: "" });
                             }}>
                                 Cancel
                             </button>
@@ -104,7 +138,7 @@ export default function TodoList() {
                     <ul>
                         {tasks.map((task, index) => (
                             <li
-                                key={index}
+                                key={task.id} // ✅ use unique task ID from backend
                                 onClick={() => handleTaskClick(index)}
                                 className={selectedTaskIndex === index ? 'selected' : ''}
                             >
