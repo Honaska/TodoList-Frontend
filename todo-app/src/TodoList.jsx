@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // ✅ added for API calls
+import axios from "axios";
 import "./index.css";
 
-// ✅ Set your FastAPI backend base URL here
-const API_BASE_URL = "https://your-fastapi-render-url.onrender.com";
+const API_BASE_URL = "https://fastapi-6txf.onrender.com";
+
 
 export default function TodoList() {
     const [tasks, setTasks] = useState([]);
@@ -12,7 +12,7 @@ export default function TodoList() {
     const [selectedTaskIndex, setSelectedTaskIndex] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
 
-    // ✅ Fetch tasks from FastAPI on component mount
+    
     useEffect(() => {
         axios.get(`${API_BASE_URL}/tasks`)
             .then(response => {
@@ -46,13 +46,13 @@ export default function TodoList() {
     const handleEditClick = () => {
         setIsEditing(true);
         setNewTask(tasks[selectedTaskIndex]);
-        setShowForm(true); // ✅ Show the form when editing
+        setShowForm(true); 
     };
 
     const handleUpdateTask = () => {
         if (newTask.title.trim() === "") return;
 
-        const taskId = tasks[selectedTaskIndex].id; // ✅ assume each task has an `id` from backend
+        const taskId = tasks[selectedTaskIndex].id;
 
         // ✅ Send updated task to backend
         axios.put(`${API_BASE_URL}/tasks/${taskId}`, newTask)
